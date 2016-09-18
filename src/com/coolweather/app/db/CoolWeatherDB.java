@@ -47,7 +47,7 @@ public class CoolWeatherDB {
 	 * 保存省级数据到数据库中
 	 */
 	public void saveProvince(Province province){
-		if(province == null){
+		if(province != null){
 			ContentValues values = new ContentValues();
 			values.put("province_name", province.getName());
 			values.put("province_code", province.getCode());
@@ -59,7 +59,7 @@ public class CoolWeatherDB {
 	 * 保存市级数据到数据库中
 	 */
 	public void saveCity(City city){
-		if(city == null){
+		if(city != null){
 			ContentValues values = new ContentValues();
 			values.put("city_name", city.getName());
 			values.put("city_code", city.getCode());
@@ -72,7 +72,7 @@ public class CoolWeatherDB {
 	 * 保存县级数据到数据库中
 	 */
 	public void saveCounty(County county){
-		if(county == null){
+		if(county != null){
 			ContentValues values = new ContentValues();
 			values.put("county_name", county.getName());
 			values.put("county_code", county.getCode());
@@ -102,7 +102,7 @@ public class CoolWeatherDB {
 	}
 	
 	/*
-	 * 获取全国省级信息
+	 * 获取全国市级信息
 	 */
 	public List<City> loadCities(int provinceId){
 		List<City> list = new ArrayList<City>();
@@ -130,9 +130,9 @@ public class CoolWeatherDB {
 	public List<County> loadCounties(int cityId){
 		List<County> list = new ArrayList<County>();
 		String orderBy = "id";
-		String selection = "province_id = ?";
+		String selection = "city_id = ?";
 		String[] selectionArgs = {String.valueOf(cityId)};
-		Cursor cursor = db.query("province", null, selection, selectionArgs, null, null, orderBy);
+		Cursor cursor = db.query("county", null, selection, selectionArgs, null, null, orderBy);
 		while(cursor.moveToNext()){
 			String name = cursor.getString(cursor.getColumnIndex("county_name"));
 			String code = cursor.getString(cursor.getColumnIndex("county_code"));
