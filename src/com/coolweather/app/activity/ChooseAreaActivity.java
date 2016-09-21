@@ -51,11 +51,16 @@ public class ChooseAreaActivity extends BaseActivity {
 	
 	private int currentLevel;
 	private ProgressDialog progressDialog;
+	
+	private boolean isFromWeatherActivity; //是否是从天气活动跳过来的
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		isFromWeatherActivity = getIntent().getBooleanExtra("from_weatherActivity", false);
+		
 		SharedPreferences spfs = PreferenceManager.getDefaultSharedPreferences(this);
-		if(spfs.getBoolean("city_selected", false)){
+		if(spfs.getBoolean("city_selected", false) && !isFromWeatherActivity){
 			Intent intent = new Intent(ChooseAreaActivity.this, WeatherActivity.class);
 			startActivity(intent);
 			finish(); //把当前活动销毁
@@ -64,10 +69,7 @@ public class ChooseAreaActivity extends BaseActivity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.choose_area);
 		
-		
-		
-		
-		
+				
 		titleTv = (TextView)findViewById(R.id.title_text);
 		listView = (ListView)findViewById(R.id.list_view);
 		
@@ -246,6 +248,13 @@ public class ChooseAreaActivity extends BaseActivity {
 		}
 		else if(currentLevel == COUNTY_LEVEL){
 			queryCities();
+		}
+		else{
+			if(isFromWeatherActivity){
+				Intent intent = new Intent(this, WeatherActivity.class);
+				startActivity(intent);
+			}
+			finish();
 		}
 	}
 }

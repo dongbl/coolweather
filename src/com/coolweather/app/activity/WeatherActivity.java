@@ -5,17 +5,20 @@ import com.coolweather.app.util.HttpCallbackListener;
 import com.coolweather.app.util.HttpUtil;
 import com.coolweather.app.util.Utility;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class WeatherActivity extends BaseActivity {
+public class WeatherActivity extends BaseActivity implements View.OnClickListener {
 	private LinearLayout weatherInfoLayout;
 	private TextView cityNameTv;
 	private TextView weatherDespTv;
@@ -23,6 +26,12 @@ public class WeatherActivity extends BaseActivity {
 	private TextView temp2Tv;
 	private TextView ptimeTv;
 	private TextView current_DateTv;
+	
+	private Button switchBt; //切换城市
+	private Button refreshBt; //刷新天气
+	
+	private String weatherCodeM;  //天气代码
+	private String countyCodeM;  //县级代码
 
 	
 	@Override
@@ -36,8 +45,10 @@ public class WeatherActivity extends BaseActivity {
 		initWidget();
 		
 		String countyCode = getIntent().getStringExtra("county_code");
+		
 		if(!TextUtils.isEmpty(countyCode))
-		{
+		{	
+			countyCodeM = countyCode;
 			ptimeTv.setText("正在同步中...");
 			weatherInfoLayout.setVisibility(View.INVISIBLE);
 			cityNameTv.setVisibility(View.INVISIBLE);
@@ -65,6 +76,7 @@ public class WeatherActivity extends BaseActivity {
 						String[] array = content.split("\\|");
 						if(array.length == 2){
 							String weatherCode = array[1];
+							weatherCodeM = weatherCode;
 							queryWeatherInfo(weatherCode);
 						}
 					}
@@ -111,6 +123,10 @@ public class WeatherActivity extends BaseActivity {
 		temp2Tv = (TextView) findViewById(R.id.temp2);
 		ptimeTv = (TextView) findViewById(R.id.publish_text);
 		current_DateTv = (TextView) findViewById(R.id.current_date);
+		switchBt = (Button) findViewById(R.id.switch_bt);
+		refreshBt = (Button) findViewById(R.id.refresh_bt);
+		switchBt.setOnClickListener(this);
+		refreshBt.setOnClickListener(this);
 	}
 	/*
 	 * 显示天气信息
@@ -125,6 +141,38 @@ public class WeatherActivity extends BaseActivity {
 		weatherDespTv.setText(spfs.getString("weatherdesp", ""));
 		weatherInfoLayout.setVisibility(View.VISIBLE);
 		cityNameTv.setVisibility(View.VISIBLE);
+	}
+	@Override
+	public void onClick(View v) {
+		switch (v.getId()) {
+		case R.id.switch_bt:  //切换城市
+				Intent intent = new Intent(WeatherActivity.this, ChooseAreaActivity.class);
+				intent.putExtra("from_weatherActivity",true);
+				startActivity(intent);
+				finish();
+			break;
+		case R.id.refresh_bt://刷新天气
+			ptimeTv.setText("正在刷新...");
+			Log.v("dongbl", weatherCodeM);
+			if(!TextUtils.isEmpty(weatherCodeM)){
+				queryWeatherInfo(weatherCodeM);
+			}
+			
+			break;
+
+		default:
+			break;
+		}
+		
+	}
+	
+	@Override
+	public void onBackPressed() {
+		Intent intent = new Intent(this, ChooseAreaActivity.class);
+		intent.putExtra("from_weatherActivity", true);
+		intent.putExtra("countyCode", countyCodeM);
+		startActivity(intent);
+		finish();
 	}
 	
 }
