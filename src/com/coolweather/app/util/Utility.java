@@ -1,9 +1,17 @@
 package com.coolweather.app.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
+import java.io.StreamCorruptedException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -15,13 +23,18 @@ import org.json.JSONObject;
 import android.R.integer;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Base64;
+import android.util.Log;
 
 import com.coolweather.app.db.CoolWeatherDB;
 import com.coolweather.app.model.City;
 import com.coolweather.app.model.County;
 import com.coolweather.app.model.Province;
+import com.coolweather.app.model.WeatherInfo;
+import com.coolweather.app.model.WeatherInfo.Forecast;
 
 /*
  * 解析"代号|城市,代号|城市"格式的数据
@@ -137,15 +150,37 @@ public class Utility {
 		try {
 			JSONObject jsonObject = new JSONObject(content);
 			JSONObject weathInfo = jsonObject.getJSONObject("data");
-			JSONArray forecast = weathInfo.getJSONArray("forecast");
+			JSONArray jsonArray = weathInfo.getJSONArray("forecast");
 			String cityName = weathInfo.getString("city");
-			String forecastChild = forecast.getString(0);
-			JSONObject jsonObject1 = new JSONObject(forecastChild);
-			String temp1 = jsonObject1.getString("low").substring(3);
-			String temp2 = jsonObject1.getString("high").substring(3);
-			String weatherDesp = jsonObject1.getString("type");
+			Log.d("dongbl", cityName);
+			String ganMao = weathInfo.getString("ganmao");
+			String wenDu = weathInfo.getString("wendu");
 			
-			saveWeatherInfo(context, cityName, temp1, temp2, weatherDesp);
+		    WeatherInfo wInfo = new WeatherInfo();
+		    wInfo.setCurrentWendu(wenDu);
+		    wInfo.setGanMao(ganMao);
+		    wInfo.setCity(cityName);
+		    
+		    Forecast[] forecast2 = wInfo.getForecasts();
+		    		
+			
+		    for(int i = 0; i < jsonArray.length(); i++){
+		    	String forecastChild = jsonArray.getString(i);
+		    	JSONObject jsonObject1 = new JSONObject(forecastChild);
+		    	String low = jsonObject1.getString("low").substring(3);
+		    	String high = jsonObject1.getString("high").substring(3);
+		    	String type = jsonObject1.getString("type");
+		    	String date = jsonObject1.getString("date");
+		    	String fengXiang = jsonObject1.getString("fengxiang");
+		    	String fengLi = jsonObject1.getString("fengli");
+		    	forecast2[i].low = low;
+		    	forecast2[i].high = high;
+		    	forecast2[i].type = type;
+		    	forecast2[i].date = date;
+		    	forecast2[i].fengXiang = fengXiang;
+		    	forecast2[i].fengLi = fengLi;
+		    }		
+			saveWeatherInfoByObject(context, wInfo, cityName);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -168,4 +203,50 @@ public class Utility {
 		editor.commit();
 		
 	}
+	
+	/**
+	 * 将服务器返回的天气数据保存到SharedPreferences文件中
+	 * 
+	 */
+	public static void saveWeatherInfoByObject(Context context, Object object,String cityName ){
+		SharedPreferences preferences = context.getSharedPreferences("Base64", 0);
+		//创建一个字节输入流
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ObjectOutputStream oos = new ObjectOutputStream(baos);
+			oos.writeObject(object);
+			String string_Base64 = new String(Base64.encode(baos.toByteArray(),Base64.DEFAULT));
+			
+			Editor editor = preferences.edit();
+			editor.putString("object", string_Base64);
+			editor.putBoolean("city_selected", true);
+			editor.putString("cityName", cityName);
+			editor.commit();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+		Log.d("dongbl", "保存数据到SharedPreferences成功");
+	}
+	/**
+	 * 将服务器返回的天气数据保存到SharedPreferences文件中
+	 * 
+	 */
+	public static Object getWeatherInfoByObject(Context context, String tagString){
+		Object object = null;
+		try {
+			SharedPreferences preferences = context.getSharedPreferences("Base64", 0);
+			String values = preferences.getString(tagString, "");
+			
+			byte[] base64 = Base64.decode(values.getBytes(),Base64.DEFAULT);
+			
+			ByteArrayInputStream bais = new ByteArrayInputStream(base64);
+			ObjectInputStream ois = new ObjectInputStream(bais);
+			object = ois.readObject();
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}	
+		return object;	
+	}
+	
 }

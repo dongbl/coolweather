@@ -51,6 +51,7 @@ public class ChooseAreaActivity extends BaseActivity {
 	
 	private int currentLevel;
 	private ProgressDialog progressDialog;
+	private myProgressDialog myProgressDialog;
 	
 	private boolean isFromWeatherActivity; //是否是从天气活动跳过来的
 	@Override
@@ -73,7 +74,9 @@ public class ChooseAreaActivity extends BaseActivity {
 		titleTv = (TextView)findViewById(R.id.title_text);
 		listView = (ListView)findViewById(R.id.list_view);
 		
-		adapter = new ArrayAdapter<String>(ChooseAreaActivity.this, android.R.layout.simple_list_item_1,dataList);
+		//adapter = new ArrayAdapter<String>(ChooseAreaActivity.this, android.R.layout.simple_list_item_1,dataList);
+		adapter = new AreaItemAdapter(ChooseAreaActivity.this, R.layout.area_item_activity,dataList);
+
 		listView.setAdapter(adapter);
 		db = CoolWeatherDB.newInstance(this);
 		
@@ -223,20 +226,19 @@ public class ChooseAreaActivity extends BaseActivity {
 	 * 显示进度对话框
 	 */
 	private void showProgressDialog(){
-		if(progressDialog == null){
-			 progressDialog = new ProgressDialog(this);
-			 progressDialog.setMessage("正在加载...");
-			 progressDialog.setCanceledOnTouchOutside(false);
+		if(myProgressDialog == null){
+			myProgressDialog = myProgressDialog.createDialog(this);
+			myProgressDialog.setMessage("正在加载...");
 		}
-		progressDialog.show();
+		myProgressDialog.show();
 	}
 	
 	/*
 	 * 关闭进度对话框
 	 */
 	private void closeProgressDialog(){
-		if(progressDialog != null){
-			progressDialog.dismiss();
+		if(myProgressDialog != null){
+			myProgressDialog.dismiss();
 		}
 	}
 	

@@ -77,5 +77,30 @@ public class UtilityTest extends AndroidTestCase {
 			}
 		});
 	}
+	
+	public void testUtility3(){
+		String address = "http://www.weather.com.cn/data/cityinfo/101190404.html";
+		String address1 = "http://wthrcdn.etouch.cn/weather_mini?citykey=101010100";
+		HttpUtil.connect2Server(address1, new HttpCallbackListener() {
+			
+			@Override
+			public void onRead(String content) {
+				try {
+					Utility.handleWeatherResponse(getContext(), content);
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+			}
+			
+			@Override
+			public void onError(Exception e) {
+				e.printStackTrace();
+				Log.d("dongbl", "2222222");
+				
+			}
+		});
+	}
 
 }
